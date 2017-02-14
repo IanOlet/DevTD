@@ -49,7 +49,7 @@ public class BasicEnemyController : MonoBehaviour {
 
         if (transform.position.x > 11.5 && turn == 5)
         {
-            manager.removeEnemy(this);
+            manager.removeEnemy(this, true);
         }
 
     }
@@ -58,7 +58,7 @@ public class BasicEnemyController : MonoBehaviour {
     {
         if (transform.position.x > 11.5 && turn == 5)
         {
-            manager.removeEnemy(this);
+            manager.removeEnemy(this, true);
             return true;
         }
         else

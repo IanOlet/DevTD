@@ -12,6 +12,12 @@ public class GameManager : MonoBehaviour {
 
     public LayerMask pathMask;
     public LayerMask towerMask;
+
+    public int lives = 10;
+    public int money = 50;
+
+    public TextMesh LivesCounter;
+    public TextMesh MoneyCounter;
     
     // Use this for initialization
 	void Start () {
@@ -34,13 +40,22 @@ public class GameManager : MonoBehaviour {
             Ray mouseRay = Camera.main.ScreenPointToRay(Input.mousePosition);
             bool pathCheck = Physics.Raycast(new Ray(mousePos, Vector3.forward), 10, pathMask);
             bool towerCheck = Physics2D.Raycast(mouseRay.origin, mouseRay.direction, 10, towerMask);
-            if (!pathCheck && !towerCheck)
+            if (!pathCheck && !towerCheck && money >= 10)
             {
                 Object obj = Instantiate(Tower.gameObject, new Vector3(mousePos.x, mousePos.y, 0), Quaternion.identity);
                 TowerController t = ((GameObject)obj).GetComponent<TowerController>();
                 Towers.Add(t);
+                money -= 10;
             }
         }
+
+        if (lives <= 0)  //Add Game Over Screen
+        {
+
+        }
+
+        LivesCounter.text = "Lives: " + lives.ToString();
+        MoneyCounter.text = "Money: " + money.ToString();
 
         /*foreach (BasicEnemyController b in BasicEnemies)
         {
@@ -50,10 +65,14 @@ public class GameManager : MonoBehaviour {
                 print("DELETED");
             }
         }*/
-	}
+    }
 
-    public void removeEnemy(BasicEnemyController b)
+    public void removeEnemy(BasicEnemyController b, bool breakthrough)
     {
+        if (breakthrough)
+        {
+            lives--;
+        }
         BasicEnemies.Remove(b);
         Destroy(b.gameObject);
     }
