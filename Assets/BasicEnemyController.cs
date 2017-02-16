@@ -7,6 +7,8 @@ public class BasicEnemyController : MonoBehaviour {
     GameManager manager;
     public Vector3 velocity;
     int turn = 0;
+    public float lifetime = 0.0f;
+    public int health = 15;
 
 	// Use this for initialization
 	void Start () {
@@ -20,7 +22,12 @@ public class BasicEnemyController : MonoBehaviour {
         where += velocity;
         transform.position = where;
 
-        if(turn == 0 && transform.position.y <= 2.4)
+        if (health <= 0)
+        {
+            manager.removeEnemy(this, false);
+        }
+
+        if (turn == 0 && transform.position.y <= 2.4)
         {
             turn = 1;
             velocity = new Vector3(.02f, 0, 0);
@@ -51,6 +58,9 @@ public class BasicEnemyController : MonoBehaviour {
         {
             manager.removeEnemy(this, true);
         }
+        
+
+        lifetime += Time.deltaTime;
 
     }
 
@@ -65,5 +75,10 @@ public class BasicEnemyController : MonoBehaviour {
         {
             return false;
         }
+    }
+
+    public void damage(int impact)
+    {
+        health -= impact;
     }
 }

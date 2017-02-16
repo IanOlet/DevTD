@@ -77,6 +77,8 @@
   <ItemGroup>
     <Compile Include="Assets\BasicEnemyController.cs" />
     <Compile Include="Assets\GameManager.cs" />
+    <Compile Include="Assets\OverlayController.cs" />
+    <Compile Include="Assets\ProjectileController.cs" />
     <Compile Include="Assets\TowerController.cs" />
   </ItemGroup>
   <Import Project="$(MSBuildExtensionsPath)\SyntaxTree\UnityVS\2015\UnityVS.CSharp.targets" />

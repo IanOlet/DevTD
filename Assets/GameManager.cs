@@ -18,6 +18,11 @@ public class GameManager : MonoBehaviour {
 
     public TextMesh LivesCounter;
     public TextMesh MoneyCounter;
+
+    bool placementMode = false;
+    public GameObject overlay;
+
+    public GameObject LoseText;
     
     // Use this for initialization
 	void Start () {
@@ -27,11 +32,24 @@ public class GameManager : MonoBehaviour {
 	// Update is called once per frame
 	void Update () {
 
-        if(Input.GetKeyDown(KeyCode.Space)) //Test spawns enemies
+        if(Input.GetKeyDown(KeyCode.E)) //Test spawns enemies
         {
             Object obj = Instantiate(BasicEnemy.gameObject, new Vector3(-6.7f, 6.21f, 0), Quaternion.identity);
             BasicEnemyController e = ((GameObject)obj).GetComponent<BasicEnemyController>();
             BasicEnemies.Add(e);
+        }
+        if (Input.GetKeyDown(KeyCode.Space)) //Turns on placement overlay
+        {
+            if (placementMode)
+            {
+                overlay.SetActive(false);
+                placementMode = false;
+            }
+            else
+            {
+                overlay.SetActive(true);
+                placementMode = true;
+            }
         }
 
         if(Input.GetMouseButtonDown(0)) //Creates towers
@@ -51,7 +69,7 @@ public class GameManager : MonoBehaviour {
 
         if (lives <= 0)  //Add Game Over Screen
         {
-
+            LoseText.SetActive(true);
         }
 
         LivesCounter.text = "Lives: " + lives.ToString();
@@ -72,6 +90,10 @@ public class GameManager : MonoBehaviour {
         if (breakthrough)
         {
             lives--;
+        }
+        else
+        {
+            money += 1;
         }
         BasicEnemies.Remove(b);
         Destroy(b.gameObject);
