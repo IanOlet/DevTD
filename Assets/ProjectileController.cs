@@ -7,7 +7,8 @@ public class ProjectileController : MonoBehaviour {
     float duration;
     public LayerMask enemyLayer;
 
-    public int damage = 1;
+    public int damage;
+    public int speed;
 
 	// Use this for initialization
 	void Start () {
@@ -28,17 +29,19 @@ public class ProjectileController : MonoBehaviour {
             BasicEnemyController enemy = c.gameObject.GetComponent<BasicEnemyController>();
             if (enemy.GetComponent<CircleCollider2D>().OverlapPoint(transform.position))
             {
-                enemy.damage(1);
+                enemy.damage(damage);
                 Destroy(gameObject);
             }
         }
         }
 
 
-    public void target (Vector3 destination)
+    public void target (Vector3 destination, int d, int s)
     {
+        damage = d;
+        speed = s;
         float angle = Mathf.Atan2(destination.y - transform.position.y, destination.x - transform.position.x);
-        GetComponent<Rigidbody2D>().velocity = new Vector2(Mathf.Cos(angle), Mathf.Sin(angle))*10;
+        GetComponent<Rigidbody2D>().velocity = new Vector2(Mathf.Cos(angle), Mathf.Sin(angle))*speed;
     }
 
 

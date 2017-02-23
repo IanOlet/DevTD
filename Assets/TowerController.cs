@@ -6,16 +6,27 @@ public class TowerController : MonoBehaviour {
 
     GameManager manager;
     int target;
-    int cooldown;
-    int range = 5;
+    int cooldown;  //Delay between shots
+    int range = 3;  //Range in Unity Units
+    int damage = 1;
+    int speed = 10;
+
+    public bool UpRate = false;
+    public bool UpRange = false;
+    public bool UpDamage = false;
 
     public LayerMask enemyLayer;
     public ProjectileController projectiles;
 
+    public GameObject rangeIndicator;
+    public GameObject upgradedIndicator;
+
+    public Color orange = new Color(1f, 0.5f, 0f, 1f);
+
 	// Use this for initialization
 	void Start () {
-		
-	}
+        GetComponent<SpriteRenderer>().color = Color.grey;
+    }
 	
 	// Update is called once per frame
 	void Update () {
@@ -39,8 +50,15 @@ public class TowerController : MonoBehaviour {
             if (targeted)
             {
                 ProjectileController bullet = Instantiate<ProjectileController>(projectiles, transform.position, transform.rotation);
-                bullet.target(target);
-                cooldown = 15;
+                bullet.target(target, damage, speed);
+                if (UpRate)
+                {
+                    cooldown = 15;
+                }
+                else
+                {
+                    cooldown = 30;
+                }
             }
         }
         else
@@ -49,4 +67,98 @@ public class TowerController : MonoBehaviour {
         }
 		
 	}
+
+    public void FireRateUpgrade()
+    {
+        UpRate = true;
+        if (UpRange && UpDamage)
+        {
+            GetComponent<SpriteRenderer>().color = Color.white;
+        }
+        else if (UpRange)
+        {
+            GetComponent<SpriteRenderer>().color = Color.green;
+        }
+        else if (UpDamage)
+        {
+            GetComponent<SpriteRenderer>().color = Color.magenta;
+        }
+        else
+        {
+            GetComponent<SpriteRenderer>().color = Color.blue;
+        }
+    }
+
+    public void RangeUpgrade()
+    {
+        range = 6;
+        UpRange = true;
+        rangeIndicator.SetActive(false);
+        upgradedIndicator.SetActive(true);
+        if (UpRate && UpDamage)
+        {
+            GetComponent<SpriteRenderer>().color = Color.white;
+        }
+        else if (UpRate)
+        {
+            GetComponent<SpriteRenderer>().color = Color.green;
+        }
+        else if (UpDamage)
+        {
+            GetComponent<SpriteRenderer>().color = orange;
+        }
+        else
+        {
+            GetComponent<SpriteRenderer>().color = Color.yellow;
+        }
+    }
+
+    public void DamageUpgrade()
+    {
+        damage = 2;
+        UpDamage = true;
+        GetComponent<SpriteRenderer>().color = Color.red;
+        if (UpRange && UpRate)
+        {
+            GetComponent<SpriteRenderer>().color = Color.white;
+        }
+        else if (UpRange)
+        {
+            GetComponent<SpriteRenderer>().color = orange;
+        }
+        else if (UpRate)
+        {
+            GetComponent<SpriteRenderer>().color = Color.magenta;
+        }
+        else
+        {
+            GetComponent<SpriteRenderer>().color = Color.red;
+        }
+    }
+
+    public void select(bool activation)
+    {
+        if(activation)
+        {
+            if(UpRange)
+            {
+                upgradedIndicator.SetActive(true);
+            }
+            else
+            {
+                rangeIndicator.SetActive(true);
+            }
+        }
+        else
+        {
+            if (UpRange)
+            {
+                upgradedIndicator.SetActive(false);
+            }
+            else
+            {
+                rangeIndicator.SetActive(false);
+            }
+        }
+    }
 }
