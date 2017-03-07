@@ -8,7 +8,7 @@ public class TowerController : MonoBehaviour {
     int target;
     int cooldown;  //Delay between shots
     int range = 3;  //Range in Unity Units
-    int damage = 1;
+    double damage = 1;
     int speed = 10;
 
     public bool UpRate = false;
@@ -93,6 +93,7 @@ public class TowerController : MonoBehaviour {
     {
         range = 6;
         UpRange = true;
+        speed = 20;
         rangeIndicator.SetActive(false);
         upgradedIndicator.SetActive(true);
         if (UpRate && UpDamage)
@@ -117,7 +118,6 @@ public class TowerController : MonoBehaviour {
     {
         damage = 2;
         UpDamage = true;
-        GetComponent<SpriteRenderer>().color = Color.red;
         if (UpRange && UpRate)
         {
             GetComponent<SpriteRenderer>().color = Color.white;

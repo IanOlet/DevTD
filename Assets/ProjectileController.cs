@@ -7,8 +7,8 @@ public class ProjectileController : MonoBehaviour {
     float duration;
     public LayerMask enemyLayer;
 
-    public int damage;
-    public int speed;
+    double damage;
+    int speed;
 
 	// Use this for initialization
 	void Start () {
@@ -36,7 +36,7 @@ public class ProjectileController : MonoBehaviour {
         }
 
 
-    public void target (Vector3 destination, int d, int s)
+    public void target (Vector3 destination, double d, int s)
     {
         damage = d;
         speed = s;

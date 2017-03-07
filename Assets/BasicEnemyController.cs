@@ -12,7 +12,8 @@ public class BasicEnemyController : MonoBehaviour {
     public Vector3 velocity;
     int turn = 0;
     public float lifetime = 0.0f;
-    public int health = 15;
+    public double health = 15f;
+    public int specialty = 0;
 
     float speed = 0.02f;
     float negSpeed = -0.02f;
@@ -67,7 +68,7 @@ public class BasicEnemyController : MonoBehaviour {
         }
         
 
-        lifetime += Time.deltaTime;
+        lifetime += (Time.deltaTime*speed);
 
     }
 
@@ -84,8 +85,12 @@ public class BasicEnemyController : MonoBehaviour {
         }
     }
 
-    public void damage(int impact)
+    public void damage(double impact)
     {
+        if (specialty == 2)
+        {
+            impact -= 0.5;
+        }
         health -= impact;
     }
 
@@ -94,9 +99,9 @@ public class BasicEnemyController : MonoBehaviour {
         if(type==1)
         {
             GetComponent<SpriteRenderer>().sprite = Dart;
-            speed = 0.08f;
-            negSpeed = -0.08f;
-            health = 10;
+            speed = 0.09f;
+            negSpeed = -0.09f;
+            health = 12f;
             velocity = new Vector3(0, negSpeed, 0);
         }
         if(type==2)
@@ -104,7 +109,7 @@ public class BasicEnemyController : MonoBehaviour {
             GetComponent<SpriteRenderer>().sprite = Brute;
             speed = 0.015f;
             negSpeed = -0.015f;
-            health = 70;
+            health = 100f;
             velocity = new Vector3(0, negSpeed, 0);
         }
     }
