@@ -14,7 +14,7 @@ public class GameManager : MonoBehaviour {
     public LayerMask towerMask;
 
     public int lives = 10;
-    public int money = 60;
+    public int money = 40;
     public int wave = 1;
     public int spawncounter = 0;
     public float spawntimer = 0f;
@@ -91,7 +91,7 @@ public class GameManager : MonoBehaviour {
             RaycastHit2D hit = Physics2D.Raycast(mouseRay.origin, mouseRay.direction, 10, towerMask);
             bool towerCheck = hit.collider != null;
 
-            if (pathCheck || towerCheck || money < 20)
+            if (pathCheck || towerCheck || money < 10)
             {
                 overlay.GetComponent<SpriteRenderer>().color = Color.red;
             }
@@ -120,12 +120,12 @@ public class GameManager : MonoBehaviour {
                 placementMode = false;
                 overlay.SetActive(false);
             }
-            else if (placementMode && !pathCheck && !towerCheck && money >= 20)
+            else if (placementMode && !pathCheck && !towerCheck && money >= 10)
             {
                 Object obj = Instantiate(Tower.gameObject, new Vector3(mousePos.x, mousePos.y, 0), Quaternion.identity);
                 TowerController t = ((GameObject)obj).GetComponent<TowerController>();
                 Towers.Add(t);
-                money -= 20;
+                money -= 10;
                 if (selecting)
                 {
                     selectedTower.select(false);
@@ -174,7 +174,7 @@ public class GameManager : MonoBehaviour {
                 selecting = false;
                 Towers.Remove(selectedTower);
                 Destroy(selectedTower.gameObject);
-                money += 10;
+                money += 5;
             }
         }
 
@@ -505,7 +505,7 @@ public class GameManager : MonoBehaviour {
         if (activeWave && waveDone && BasicEnemies.Count==0)
         {
             activeWave = false;
-            money += 20;
+            money += 10;
             if (wave == 10)
             {
                 victory = true;
@@ -520,7 +520,14 @@ public class GameManager : MonoBehaviour {
         LivesCounter.text = "Lives: " + lives.ToString();
         MoneyCounter.text = "Money: " + money.ToString();
         WaveCounter.text = "Wave " + wave.ToString();
-        EnemyCounter.text = "Enemies: " + BasicEnemies.Count;
+        if (activeWave)
+        {
+            EnemyCounter.text = "Enemies: " + BasicEnemies.Count;
+        }
+        else
+        {
+            EnemyCounter.text = "Press Space to begin wave";
+        }
         
     }
 

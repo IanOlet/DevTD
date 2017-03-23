@@ -8,12 +8,16 @@ public class BasicEnemyController : MonoBehaviour {
     public Sprite Basic;
     public Sprite Dart;
     public Sprite Brute;
+    public GameObject BasicParticle;
+    public GameObject FastParticle;
+    public GameObject HeavyParticle;
 
     public Vector3 velocity;
     int turn = 0;
     public float lifetime = 0.0f;
     public double health = 15f;
     public int specialty = 0;
+    int type = 0;
 
     float speed = 0.02f;
     float negSpeed = -0.02f;
@@ -85,27 +89,42 @@ public class BasicEnemyController : MonoBehaviour {
         }
     }
 
-    public void damage(double impact)
+    public void damage(double impact, Vector3 pos, Quaternion rotation)
     {
+        Quaternion rot = Quaternion.Euler(-rotation.eulerAngles);
         if (specialty == 2)
         {
             impact -= 0.5;
         }
         health -= impact;
+        if (type == 0)
+        {
+            Instantiate(BasicParticle, pos, rot);
+        }
+        else if (type == 1)
+        {
+            Instantiate(FastParticle, pos, rot);
+        }
+        else if (type == 2)
+        {
+            Instantiate(HeavyParticle, pos, rot);
+        }
     }
 
-    public void special(int type) //Gives the enemy special stats, 1 is fast, 2 is tanky
+    public void special(int t) //Gives the enemy special stats, 1 is fast, 2 is tanky
     {
-        if(type==1)
+        if(t==1)
         {
+            type = 1;
             GetComponent<SpriteRenderer>().sprite = Dart;
             speed = 0.09f;
             negSpeed = -0.09f;
             health = 12f;
             velocity = new Vector3(0, negSpeed, 0);
         }
-        if(type==2)
+        if(t==2)
         {
+            type = 2;
             GetComponent<SpriteRenderer>().sprite = Brute;
             speed = 0.015f;
             negSpeed = -0.015f;

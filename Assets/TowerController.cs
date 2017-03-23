@@ -10,6 +10,15 @@ public class TowerController : MonoBehaviour {
     int range = 3;  //Range in Unity Units
     double damage = 1;
     int speed = 10;
+    int type = 0; //Int to keep track of what upgrade combination the tower is
+    //0 is basic
+    //1 is firerate
+    //2 is range
+    //3 is damage
+    //4 is firerate/range
+    //5 is firerate/damage
+    //6 is range/damage
+    //7 is all upgrades
 
     public bool UpRate = false;
     public bool UpRange = false;
@@ -20,8 +29,17 @@ public class TowerController : MonoBehaviour {
 
     public GameObject rangeIndicator;
     public GameObject upgradedIndicator;
+    public GameObject orbital;
 
-    public Color orange = new Color(1f, 0.5f, 0f, 1f);
+    public Sprite blueTower;
+    public Sprite yellowTower;
+    public Sprite redTower;
+    public Sprite orangeTower;
+    public Sprite greenTower;
+    public Sprite violetTower;
+    public Sprite superTower;
+
+    public Color orange = new Color(1f, 0.6f, 0f, 1f);
 
 	// Use this for initialization
 	void Start () {
@@ -50,7 +68,7 @@ public class TowerController : MonoBehaviour {
             if (targeted)
             {
                 ProjectileController bullet = Instantiate<ProjectileController>(projectiles, transform.position, transform.rotation);
-                bullet.target(target, damage, speed);
+                bullet.target(target, damage, speed, type);
                 if (UpRate)
                 {
                     cooldown = 15;
@@ -73,19 +91,27 @@ public class TowerController : MonoBehaviour {
         UpRate = true;
         if (UpRange && UpDamage)
         {
-            GetComponent<SpriteRenderer>().color = Color.white;
+            orbital.GetComponent<SpriteRenderer>().color = Color.white;
+            GetComponent<SpriteRenderer>().sprite = superTower;
+            type = 7;
         }
         else if (UpRange)
         {
-            GetComponent<SpriteRenderer>().color = Color.green;
+            orbital.GetComponent<SpriteRenderer>().color = Color.green;
+            GetComponent<SpriteRenderer>().sprite = greenTower;
+            type = 4;
         }
         else if (UpDamage)
         {
-            GetComponent<SpriteRenderer>().color = Color.magenta;
+            orbital.GetComponent<SpriteRenderer>().color = Color.magenta;
+            GetComponent<SpriteRenderer>().sprite = violetTower;
+            type = 5;
         }
         else
         {
-            GetComponent<SpriteRenderer>().color = Color.blue;
+            orbital.GetComponent<SpriteRenderer>().color = Color.blue;
+            GetComponent<SpriteRenderer>().sprite = blueTower;
+            type = 1;
         }
     }
 
@@ -98,19 +124,27 @@ public class TowerController : MonoBehaviour {
         upgradedIndicator.SetActive(true);
         if (UpRate && UpDamage)
         {
-            GetComponent<SpriteRenderer>().color = Color.white;
+            orbital.GetComponent<SpriteRenderer>().color = Color.white;
+            GetComponent<SpriteRenderer>().sprite = superTower;
+            type = 7;
         }
         else if (UpRate)
         {
-            GetComponent<SpriteRenderer>().color = Color.green;
+            orbital.GetComponent<SpriteRenderer>().color = Color.green;
+            GetComponent<SpriteRenderer>().sprite = greenTower;
+            type = 4;
         }
         else if (UpDamage)
         {
-            GetComponent<SpriteRenderer>().color = orange;
+            orbital.GetComponent<SpriteRenderer>().color = orange;
+            GetComponent<SpriteRenderer>().sprite = orangeTower;
+            type = 6;
         }
         else
         {
-            GetComponent<SpriteRenderer>().color = Color.yellow;
+            orbital.GetComponent<SpriteRenderer>().color = Color.yellow;
+            GetComponent<SpriteRenderer>().sprite = yellowTower;
+            type = 2;
         }
     }
 
@@ -120,19 +154,27 @@ public class TowerController : MonoBehaviour {
         UpDamage = true;
         if (UpRange && UpRate)
         {
-            GetComponent<SpriteRenderer>().color = Color.white;
+            orbital.GetComponent<SpriteRenderer>().color = Color.white;
+            GetComponent<SpriteRenderer>().sprite = superTower;
+            type = 7;
         }
         else if (UpRange)
         {
-            GetComponent<SpriteRenderer>().color = orange;
+            orbital.GetComponent<SpriteRenderer>().color = orange;
+            GetComponent<SpriteRenderer>().sprite = orangeTower;
+            type = 6;
         }
         else if (UpRate)
         {
-            GetComponent<SpriteRenderer>().color = Color.magenta;
+            orbital.GetComponent<SpriteRenderer>().color = Color.magenta;
+            GetComponent<SpriteRenderer>().sprite = violetTower;
+            type = 5;
         }
         else
         {
-            GetComponent<SpriteRenderer>().color = Color.red;
+            orbital.GetComponent<SpriteRenderer>().color = Color.red;
+            GetComponent<SpriteRenderer>().sprite = redTower;
+            type = 3;
         }
     }
 
