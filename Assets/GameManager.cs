@@ -21,6 +21,7 @@ public class GameManager : MonoBehaviour {
     public bool activeWave = false;
     public bool waveDone = false;
     bool victory = false;
+    bool lossSet = false;
 
     public TextMesh LivesCounter;
     public TextMesh MoneyCounter;
@@ -34,10 +35,27 @@ public class GameManager : MonoBehaviour {
 
     bool selecting = false;
     TowerController selectedTower;
+
+    private AudioSource sound;
+    private AudioSource music;
+    public AudioClip ActiveWaveLoop;
+    public AudioClip DowntimeLoop;
+    public AudioClip FinalWaveLoop;
+    public AudioClip modeSwitch;
+    public AudioClip towerBuild;
+    public AudioClip waveStart;
+    public AudioClip lifeLost;
+    public AudioClip gameLost;
+    public AudioClip sellTower;
+    public AudioClip destroySound;
     
     // Use this for initialization
 	void Start () {
-		
+        var check = GetComponents<AudioSource>();
+        sound = check[0];
+        music = check[1];
+        music.clip = DowntimeLoop;
+        music.Play();
 	}
 	
 	// Update is called once per frame
@@ -80,6 +98,7 @@ public class GameManager : MonoBehaviour {
                 }
                 overlay.SetActive(true);
                 placementMode = true;
+                //sound.PlayOneShot(modeSwitch, 0.5f);
             }
         }
 
@@ -119,6 +138,7 @@ public class GameManager : MonoBehaviour {
                 selecting = true;
                 placementMode = false;
                 overlay.SetActive(false);
+                //sound.PlayOneShot(modeSwitch, 0.5f);
             }
             else if (placementMode && !pathCheck && !towerCheck && money >= 10)
             {
@@ -131,6 +151,7 @@ public class GameManager : MonoBehaviour {
                     selectedTower.select(false);
                     selecting = false;
                 }
+                sound.PlayOneShot(towerBuild, 0.5f);
             }
             else if(selecting)
             {
@@ -175,6 +196,7 @@ public class GameManager : MonoBehaviour {
                 Towers.Remove(selectedTower);
                 Destroy(selectedTower.gameObject);
                 money += 5;
+                sound.PlayOneShot(sellTower, 0.75f);
             }
         }
 
@@ -184,6 +206,17 @@ public class GameManager : MonoBehaviour {
             spawncounter = 0;
             spawntimer = 0;
             waveDone = false;
+            //sound.PlayOneShot(waveStart, 0.75f);              Sound for starting wave was a bit jarring
+            music.Stop();
+            if (wave == 10)
+            {
+                music.clip = FinalWaveLoop;
+            }
+            else
+            {
+                music.clip = ActiveWaveLoop;
+            }
+            music.Play();
         }
 
         if(activeWave) //Handles enemy spawning during waves
@@ -497,9 +530,11 @@ public class GameManager : MonoBehaviour {
             spawntimer += Time.deltaTime;
         }
 
-        if (lives <= 0)  //Triggers a game-over if all lives are lost
+        if (lives <= 0 && !lossSet)  //Triggers a game-over if all lives are lost
         {
             LoseText.SetActive(true);
+            sound.PlayOneShot(gameLost, 0.5f);
+            lossSet = true;
         }
 
         if (activeWave && waveDone && BasicEnemies.Count==0)
@@ -515,6 +550,9 @@ public class GameManager : MonoBehaviour {
             {
                 wave++;
             }
+            music.Stop();
+            music.clip = DowntimeLoop;
+            music.Play();
         }
 
         LivesCounter.text = "Lives: " + lives.ToString();
@@ -523,6 +561,10 @@ public class GameManager : MonoBehaviour {
         if (activeWave)
         {
             EnemyCounter.text = "Enemies: " + BasicEnemies.Count;
+        }
+        else if (wave >= 10)
+        {
+            EnemyCounter.text = "";
         }
         else
         {
@@ -536,10 +578,15 @@ public class GameManager : MonoBehaviour {
         if (breakthrough)
         {
             lives--;
+            if (lives > 0)
+            {
+                sound.PlayOneShot(lifeLost);
+            }
         }
         else
         {
             money += 1;
+            sound.PlayOneShot(destroySound, 0.75f);
         }
         BasicEnemies.Remove(b);
         Destroy(b.gameObject);

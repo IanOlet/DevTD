@@ -11,6 +11,9 @@ public class BasicEnemyController : MonoBehaviour {
     public GameObject BasicParticle;
     public GameObject FastParticle;
     public GameObject HeavyParticle;
+    public GameObject BasicDeadParticles;
+    public GameObject FastDeadParticles;
+    public GameObject HeavyDeadParticles;
 
     public Vector3 velocity;
     int turn = 0;
@@ -22,8 +25,14 @@ public class BasicEnemyController : MonoBehaviour {
     float speed = 0.02f;
     float negSpeed = -0.02f;
 
+    public AudioClip hitSound;
+    public AudioClip armorSound;
+
+    private AudioSource sound;
+
 	// Use this for initialization
 	void Start () {
+        sound = GetComponent<AudioSource>();
         velocity = new Vector3(0, negSpeed, 0);
         manager = GameObject.FindObjectOfType<GameManager>();
 	}
@@ -36,6 +45,18 @@ public class BasicEnemyController : MonoBehaviour {
 
         if (health <= 0)
         {
+            if (type == 0)
+            {
+                Instantiate(BasicDeadParticles, transform.position, Quaternion.identity);
+            }
+            else if (type == 1)
+            {
+                Instantiate(FastDeadParticles, transform.position, Quaternion.identity);
+            }
+            else if (type == 2)
+            {
+                Instantiate(HeavyDeadParticles, transform.position, Quaternion.identity);
+            }
             manager.removeEnemy(this, false);
         }
 
@@ -95,6 +116,14 @@ public class BasicEnemyController : MonoBehaviour {
         if (specialty == 2)
         {
             impact -= 0.5;
+        }
+        if (impact <= 1 && type == 2)
+        {
+            sound.PlayOneShot(armorSound, 0.5f);
+        }
+        else
+        {
+            sound.PlayOneShot(hitSound, 0.5f);
         }
         health -= impact;
         if (type == 0)

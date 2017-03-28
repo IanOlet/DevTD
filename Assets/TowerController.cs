@@ -30,6 +30,7 @@ public class TowerController : MonoBehaviour {
     public GameObject rangeIndicator;
     public GameObject upgradedIndicator;
     public GameObject orbital;
+    public GameObject highlight;
 
     public Sprite blueTower;
     public Sprite yellowTower;
@@ -39,11 +40,19 @@ public class TowerController : MonoBehaviour {
     public Sprite violetTower;
     public Sprite superTower;
 
+    public AudioClip SpeedSound;
+    public AudioClip RangeSound;
+    public AudioClip PowerSound;
+    public AudioClip SuperSound;
+
+    private AudioSource sound;
+
     public Color orange = new Color(1f, 0.6f, 0f, 1f);
 
 	// Use this for initialization
 	void Start () {
         GetComponent<SpriteRenderer>().color = Color.grey;
+        sound = GetComponent<AudioSource>();
     }
 	
 	// Update is called once per frame
@@ -92,26 +101,34 @@ public class TowerController : MonoBehaviour {
         if (UpRange && UpDamage)
         {
             orbital.GetComponent<SpriteRenderer>().color = Color.white;
+            highlight.GetComponent<SpriteRenderer>().color = Color.white;
             GetComponent<SpriteRenderer>().sprite = superTower;
             type = 7;
+            sound.PlayOneShot(SuperSound);
         }
         else if (UpRange)
         {
             orbital.GetComponent<SpriteRenderer>().color = Color.green;
+            highlight.GetComponent<SpriteRenderer>().color = Color.green;
             GetComponent<SpriteRenderer>().sprite = greenTower;
             type = 4;
+            sound.PlayOneShot(SpeedSound);
         }
         else if (UpDamage)
         {
             orbital.GetComponent<SpriteRenderer>().color = Color.magenta;
+            highlight.GetComponent<SpriteRenderer>().color = Color.magenta;
             GetComponent<SpriteRenderer>().sprite = violetTower;
             type = 5;
+            sound.PlayOneShot(SpeedSound);
         }
         else
         {
             orbital.GetComponent<SpriteRenderer>().color = Color.blue;
+            highlight.GetComponent<SpriteRenderer>().color = Color.blue;
             GetComponent<SpriteRenderer>().sprite = blueTower;
             type = 1;
+            sound.PlayOneShot(SpeedSound);
         }
     }
 
@@ -125,26 +142,34 @@ public class TowerController : MonoBehaviour {
         if (UpRate && UpDamage)
         {
             orbital.GetComponent<SpriteRenderer>().color = Color.white;
+            highlight.GetComponent<SpriteRenderer>().color = Color.white;
             GetComponent<SpriteRenderer>().sprite = superTower;
             type = 7;
+            sound.PlayOneShot(SuperSound);
         }
         else if (UpRate)
         {
             orbital.GetComponent<SpriteRenderer>().color = Color.green;
+            highlight.GetComponent<SpriteRenderer>().color = Color.green;
             GetComponent<SpriteRenderer>().sprite = greenTower;
             type = 4;
+            sound.PlayOneShot(RangeSound);
         }
         else if (UpDamage)
         {
             orbital.GetComponent<SpriteRenderer>().color = orange;
+            highlight.GetComponent<SpriteRenderer>().color = orange;
             GetComponent<SpriteRenderer>().sprite = orangeTower;
             type = 6;
+            sound.PlayOneShot(RangeSound);
         }
         else
         {
             orbital.GetComponent<SpriteRenderer>().color = Color.yellow;
+            highlight.GetComponent<SpriteRenderer>().color = Color.yellow;
             GetComponent<SpriteRenderer>().sprite = yellowTower;
             type = 2;
+            sound.PlayOneShot(RangeSound);
         }
     }
 
@@ -155,26 +180,34 @@ public class TowerController : MonoBehaviour {
         if (UpRange && UpRate)
         {
             orbital.GetComponent<SpriteRenderer>().color = Color.white;
+            highlight.GetComponent<SpriteRenderer>().color = Color.white;
             GetComponent<SpriteRenderer>().sprite = superTower;
             type = 7;
+            sound.PlayOneShot(SuperSound);
         }
         else if (UpRange)
         {
             orbital.GetComponent<SpriteRenderer>().color = orange;
+            highlight.GetComponent<SpriteRenderer>().color = orange;
             GetComponent<SpriteRenderer>().sprite = orangeTower;
             type = 6;
+            sound.PlayOneShot(PowerSound);
         }
         else if (UpRate)
         {
             orbital.GetComponent<SpriteRenderer>().color = Color.magenta;
+            highlight.GetComponent<SpriteRenderer>().color = Color.magenta;
             GetComponent<SpriteRenderer>().sprite = violetTower;
             type = 5;
+            sound.PlayOneShot(PowerSound);
         }
         else
         {
             orbital.GetComponent<SpriteRenderer>().color = Color.red;
+            highlight.GetComponent<SpriteRenderer>().color = Color.red;
             GetComponent<SpriteRenderer>().sprite = redTower;
             type = 3;
+            sound.PlayOneShot(PowerSound);
         }
     }
 
