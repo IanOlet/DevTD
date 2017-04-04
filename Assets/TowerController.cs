@@ -6,7 +6,7 @@ public class TowerController : MonoBehaviour {
 
     GameManager manager;
     int target;
-    int cooldown;  //Delay between shots
+    float cooldown;  //Delay between shots
     int range = 3;  //Range in Unity Units
     double damage = 1;
     int speed = 10;
@@ -58,7 +58,7 @@ public class TowerController : MonoBehaviour {
 	// Update is called once per frame
 	void Update () {
 
-        if(cooldown==0)
+        if(cooldown<=0) //Looks for enemies in range, and sets the one furthest on the path as a target
         {
             Vector3 target = Vector3.zero;
             float targetTime = 0;
@@ -74,28 +74,28 @@ public class TowerController : MonoBehaviour {
                     targeted = true;
                 }
             }
-            if (targeted)
+            if (targeted) //Fires the projectile and sets the cooldown between shots
             {
                 ProjectileController bullet = Instantiate<ProjectileController>(projectiles, transform.position, transform.rotation);
                 bullet.target(target, damage, speed, type);
                 if (UpRate)
                 {
-                    cooldown = 15;
+                    cooldown = .25f;
                 }
                 else
                 {
-                    cooldown = 30;
+                    cooldown = .5f;
                 }
             }
         }
         else
         {
-            cooldown--;
+            cooldown-= 1*Time.deltaTime;
         }
 		
 	}
 
-    public void FireRateUpgrade()
+    public void FireRateUpgrade() //Deals with when the tower's firerate is upgraded
     {
         UpRate = true;
         if (UpRange && UpDamage)
@@ -132,7 +132,7 @@ public class TowerController : MonoBehaviour {
         }
     }
 
-    public void RangeUpgrade()
+    public void RangeUpgrade() //Deals with when the tower's range is upgraded
     {
         range = 6;
         UpRange = true;
@@ -173,7 +173,7 @@ public class TowerController : MonoBehaviour {
         }
     }
 
-    public void DamageUpgrade()
+    public void DamageUpgrade() //Deals with when the tower's damage is upgraded
     {
         damage = 2;
         UpDamage = true;
@@ -211,7 +211,7 @@ public class TowerController : MonoBehaviour {
         }
     }
 
-    public void select(bool activation)
+    public void select(bool activation) //Turns on the range overlay when selected
     {
         if(activation)
         {

@@ -25,11 +25,12 @@ public class ProjectileController : MonoBehaviour {
 	// Update is called once per frame
 	void Update () {
         duration -= Time.deltaTime;
-        if(duration<=0.0f)
+        if(duration<=0.0f)  //Deletes the projectile in case it misses and goes off screen
         {
             Destroy(gameObject);
         }
 
+        //Determines collision and tells the hit enemies to take damage
         Collider2D[] colliders = Physics2D.OverlapCircleAll(transform.position, 5, enemyLayer);
         foreach (Collider2D c in colliders)
         {
@@ -43,7 +44,7 @@ public class ProjectileController : MonoBehaviour {
     }
 
 
-    public void target (Vector3 destination, double d, int s, int type)
+    public void target (Vector3 destination, double d, int s, int type) //Sets the direction and stats of the projectile
     {
         //See comment on the type variable in TowerController
         if(type==0)

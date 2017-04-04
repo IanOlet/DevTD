@@ -5,16 +5,61 @@ using UnityEngine.SceneManagement;
 
 public class MenuController : MonoBehaviour {
 
-	// Use this for initialization
-	void Start () {
+    public LayerMask pathMask;
+    public LayerMask towerMask;
+
+    public GameObject startText;
+    public GameObject learnText;
+    public GameObject startHighlight;
+    public GameObject learnHighlight;
+
+    // Use this for initialization
+    void Start () {
 		
 	}
 	
 	// Update is called once per frame
 	void Update () {
-		if(Input.GetKeyDown(KeyCode.KeypadEnter) || Input.GetKeyDown(KeyCode.Return))
+		if(Input.GetKeyDown(KeyCode.KeypadEnter) || Input.GetKeyDown(KeyCode.Return)) //Loads the game when the key is pressed
         {
             SceneManager.LoadScene("Level");
         }
-	}
+
+        Vector3 mousePos = Camera.main.ScreenToWorldPoint(Input.mousePosition);
+        Ray mouseRay = Camera.main.ScreenPointToRay(Input.mousePosition);
+        RaycastHit2D hit = Physics2D.Raycast(mouseRay.origin, mouseRay.direction, 10, pathMask);
+        bool pathCheck = hit.collider != null;
+        RaycastHit2D hit2 = Physics2D.Raycast(mouseRay.origin, mouseRay.direction, 10, towerMask);
+        bool towerCheck = hit2.collider != null;
+
+        if (pathCheck)
+        {
+            startHighlight.SetActive(true);
+        }
+        else
+        {
+            startHighlight.SetActive(false);
+        }
+
+        if (towerCheck)
+        {
+            learnHighlight.SetActive(true);
+        }
+        else
+        {
+            learnHighlight.SetActive(false);
+        }
+
+        if(Input.GetMouseButton(0))
+        {
+            if(pathCheck)
+            {
+                SceneManager.LoadScene("Level");
+            }
+            else if(towerCheck)
+            {
+                SceneManager.LoadScene("Menu");
+            }
+        }
+    }
 }

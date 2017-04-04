@@ -1,6 +1,7 @@
 ﻿using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
+using UnityEngine.SceneManagement;
 
 public class GameManager : MonoBehaviour {
 
@@ -57,7 +58,13 @@ public class GameManager : MonoBehaviour {
         music.clip = DowntimeLoop;
         music.Play();
 	}
-	
+    IEnumerator sleep(float time) //Pauses the game for a moment, called when towers are placed and lives are lost
+    {
+        Time.timeScale = 0.0f;
+        yield return new WaitForSecondsRealtime(time);
+        Time.timeScale = 1.0f;
+    }
+
 	// Update is called once per frame
 	void Update () {
 
@@ -102,7 +109,7 @@ public class GameManager : MonoBehaviour {
             }
         }
 
-        if (placementMode)
+        if (placementMode)  //Checks if there is room to place a tower, changes overlay color to represent this
         {
             Vector3 mousePos = Camera.main.ScreenToWorldPoint(Input.mousePosition);
             Ray mouseRay = Camera.main.ScreenPointToRay(Input.mousePosition);
@@ -140,7 +147,7 @@ public class GameManager : MonoBehaviour {
                 overlay.SetActive(false);
                 //sound.PlayOneShot(modeSwitch, 0.5f);
             }
-            else if (placementMode && !pathCheck && !towerCheck && money >= 10)
+            else if (placementMode && !pathCheck && !towerCheck && money >= 10) //Creates Towers
             {
                 Object obj = Instantiate(Tower.gameObject, new Vector3(mousePos.x, mousePos.y, 0), Quaternion.identity);
                 TowerController t = ((GameObject)obj).GetComponent<TowerController>();
@@ -152,12 +159,19 @@ public class GameManager : MonoBehaviour {
                     selecting = false;
                 }
                 sound.PlayOneShot(towerBuild, 0.5f);
+                StartCoroutine("sleep", 0.1f);
             }
-            else if(selecting)
+            else if(selecting)  //Deselects towers if nothing is clicked on
             {
                 selectedTower.select(false);
                 selecting = false;
             }
+        }
+
+        //Goes back to menu
+        if (Input.GetKeyUp(KeyCode.Escape))
+        {
+            SceneManager.LoadScene("Title");
         }
 
         if (selecting) //Handles upgrading and selling selected towers
@@ -219,7 +233,7 @@ public class GameManager : MonoBehaviour {
             music.Play();
         }
 
-        if(activeWave) //Handles enemy spawning during waves
+        if(activeWave) //Handles enemy spawning during waves. Skip to line 533 if you don't need to change this.
         {
             if (wave == 1)
             {
@@ -537,11 +551,11 @@ public class GameManager : MonoBehaviour {
             lossSet = true;
         }
 
-        if (activeWave && waveDone && BasicEnemies.Count==0)
+        if (activeWave && waveDone && BasicEnemies.Count==0) //Determines if the wave is done
         {
             activeWave = false;
             money += 10;
-            if (wave == 10)
+            if (wave == 10) //Checks if the game is won, possibly initiate a scene change here
             {
                 victory = true;
                 WinText.SetActive(true);
@@ -555,6 +569,7 @@ public class GameManager : MonoBehaviour {
             music.Play();
         }
 
+        //Handles UI text
         LivesCounter.text = "Lives: " + lives.ToString();
         MoneyCounter.text = "Money: " + money.ToString();
         WaveCounter.text = "Wave " + wave.ToString();
@@ -573,11 +588,12 @@ public class GameManager : MonoBehaviour {
         
     }
 
-    public void removeEnemy(BasicEnemyController b, bool breakthrough)
+    public void removeEnemy(BasicEnemyController b, bool breakthrough) //Removes enemies that are destroyed or reach the end
     {
         if (breakthrough)
         {
             lives--;
+            StartCoroutine("sleep", 0.2f);
             if (lives > 0)
             {
                 sound.PlayOneShot(lifeLost);

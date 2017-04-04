@@ -22,8 +22,8 @@ public class BasicEnemyController : MonoBehaviour {
     public int specialty = 0;
     int type = 0;
 
-    float speed = 0.02f;
-    float negSpeed = -0.02f;
+    float speed = 1.2f;
+    float negSpeed = -1.2f;
 
     public AudioClip hitSound;
     public AudioClip armorSound;
@@ -40,7 +40,7 @@ public class BasicEnemyController : MonoBehaviour {
 	// Update is called once per frame
 	void Update () {
         Vector3 where = transform.position;
-        where += velocity;
+        where += velocity*Time.deltaTime;
         transform.position = where;
 
         if (health <= 0)
@@ -146,8 +146,8 @@ public class BasicEnemyController : MonoBehaviour {
         {
             type = 1;
             GetComponent<SpriteRenderer>().sprite = Dart;
-            speed = 0.09f;
-            negSpeed = -0.09f;
+            speed = 3f;
+            negSpeed = -3f;
             health = 12f;
             velocity = new Vector3(0, negSpeed, 0);
         }
@@ -155,8 +155,8 @@ public class BasicEnemyController : MonoBehaviour {
         {
             type = 2;
             GetComponent<SpriteRenderer>().sprite = Brute;
-            speed = 0.015f;
-            negSpeed = -0.015f;
+            speed = 1f;
+            negSpeed = -1f;
             health = 100f;
             velocity = new Vector3(0, negSpeed, 0);
         }
