@@ -668,7 +668,7 @@ public class GameManager : MonoBehaviour {
         {
             EnemyCounter.text = "Enemies: " + BasicEnemies.Count;
         }
-        else if (wave >= 10 || !lossSet)
+        else if (wave >= 10 || lossSet)
         {
             EnemyCounter.text = "";
         }
