@@ -30,12 +30,19 @@ public class GameManager : MonoBehaviour {
     public TextMesh EnemyCounter;
     public GameObject LoseText;
     public GameObject WinText;
+    public TextMesh ScoreText;
+    public GameObject ContinueText;
+    public GameObject EndShade;
 
     bool placementMode = false;
     public GameObject overlay;
 
     bool selecting = false;
     TowerController selectedTower;
+
+    float countdown = 0;
+    int score = 0;
+    int postPhase = 0;
 
     private AudioSource sound;
     private AudioSource music;
@@ -49,6 +56,8 @@ public class GameManager : MonoBehaviour {
     public AudioClip gameLost;
     public AudioClip sellTower;
     public AudioClip destroySound;
+    public AudioClip hitSound;
+    public AudioClip endBlips;
     
     // Use this for initialization
 	void Start () {
@@ -544,11 +553,77 @@ public class GameManager : MonoBehaviour {
             spawntimer += Time.deltaTime;
         }
 
-        if (lives <= 0 && !lossSet)  //Triggers a game-over if all lives are lost
+        if (lives <= 0 && !lossSet && !victory)  //Triggers a game-over if all lives are lost
         {
-            LoseText.SetActive(true);
+            countdown = 2;
             sound.PlayOneShot(gameLost, 0.5f);
             lossSet = true;
+            music.Stop();
+        }
+
+        if ((Input.GetKey(KeyCode.Return) || Input.GetKey(KeyCode.Space) || Input.GetKey(KeyCode.KeypadEnter)) && (victory || lossSet))
+        {
+            SceneManager.LoadScene("Title");
+        }
+
+        if (countdown > 0) //Deals with the timing for the post game screens
+        {
+            countdown -= Time.deltaTime;
+        }
+        else if (postPhase == 1)
+        {
+            sound.PlayOneShot(endBlips);
+            ScoreText.gameObject.SetActive(true);
+            postPhase = 2;
+            countdown = 0.5f;
+        }
+        else if (postPhase == 2)
+        {
+            ScoreText.text = "Score: " + score;
+            if(money > 0)
+            {
+                sound.PlayOneShot(hitSound, 0.5f);
+                money--;
+                score++;
+            }
+            else if (money <= 0 && lives > 0)
+            {
+                sound.PlayOneShot(sellTower, 0.3f);
+                lives--;
+                score += 10;
+                countdown = 0.3f;
+            }
+            else if (money <= 0 && lives <= 0)
+            {
+                postPhase = 3;
+                countdown = 1;
+            }
+        }
+        else if (postPhase == 3)
+        {
+            sound.PlayOneShot(endBlips);
+            ContinueText.SetActive(true);
+            postPhase = 4;
+        }
+        else if (postPhase == 4)
+        {
+            //Do nothing
+        }
+        else if (lossSet && countdown <= 0)
+        {
+            sound.PlayOneShot(endBlips);
+            EndShade.SetActive(true);
+            LoseText.SetActive(true);
+            postPhase = 1;
+            countdown = 1.5f;
+        }
+        else if (victory && countdown <= 0)
+        {
+            sound.PlayOneShot(endBlips);
+            EndShade.SetActive(true);
+            WinText.SetActive(true);
+            postPhase = 1;
+            countdown = 1.5f;
         }
 
         if (activeWave && waveDone && BasicEnemies.Count==0) //Determines if the wave is done
@@ -558,15 +633,18 @@ public class GameManager : MonoBehaviour {
             if (wave == 10) //Checks if the game is won, possibly initiate a scene change here
             {
                 victory = true;
-                WinText.SetActive(true);
+                countdown = 2;
             }
             else
             {
                 wave++;
             }
             music.Stop();
-            music.clip = DowntimeLoop;
-            music.Play();
+            if (!victory && !lossSet)
+            {
+                music.clip = DowntimeLoop;
+                music.Play();
+            }
         }
 
         //Handles UI text
@@ -577,7 +655,7 @@ public class GameManager : MonoBehaviour {
         {
             EnemyCounter.text = "Enemies: " + BasicEnemies.Count;
         }
-        else if (wave >= 10)
+        else if (wave >= 10 || !lossSet)
         {
             EnemyCounter.text = "";
         }
@@ -590,7 +668,7 @@ public class GameManager : MonoBehaviour {
 
     public void removeEnemy(BasicEnemyController b, bool breakthrough) //Removes enemies that are destroyed or reach the end
     {
-        if (breakthrough)
+        if (breakthrough && !lossSet)
         {
             lives--;
             StartCoroutine("sleep", 0.2f);
@@ -599,7 +677,7 @@ public class GameManager : MonoBehaviour {
                 sound.PlayOneShot(lifeLost);
             }
         }
-        else
+        else if (!lossSet)
         {
             money += 1;
             sound.PlayOneShot(destroySound, 0.75f);

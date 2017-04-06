@@ -12,6 +12,10 @@ public class MenuController : MonoBehaviour {
     public GameObject learnText;
     public GameObject startHighlight;
     public GameObject learnHighlight;
+    public GameObject information;
+    public GameObject title;
+
+    bool learning = false;
 
     // Use this for initialization
     void Start () {
@@ -25,40 +29,44 @@ public class MenuController : MonoBehaviour {
             SceneManager.LoadScene("Level");
         }
 
-        Vector3 mousePos = Camera.main.ScreenToWorldPoint(Input.mousePosition);
-        Ray mouseRay = Camera.main.ScreenPointToRay(Input.mousePosition);
-        RaycastHit2D hit = Physics2D.Raycast(mouseRay.origin, mouseRay.direction, 10, pathMask);
-        bool pathCheck = hit.collider != null;
-        RaycastHit2D hit2 = Physics2D.Raycast(mouseRay.origin, mouseRay.direction, 10, towerMask);
-        bool towerCheck = hit2.collider != null;
+        if (!learning)
+        {
+            Vector3 mousePos = Camera.main.ScreenToWorldPoint(Input.mousePosition);
+            Ray mouseRay = Camera.main.ScreenPointToRay(Input.mousePosition);
+            RaycastHit2D hit = Physics2D.Raycast(mouseRay.origin, mouseRay.direction, 10, pathMask);
+            bool pathCheck = hit.collider != null;
+            RaycastHit2D hit2 = Physics2D.Raycast(mouseRay.origin, mouseRay.direction, 10, towerMask);
+            bool towerCheck = hit2.collider != null;
 
-        if (pathCheck)
-        {
-            startHighlight.SetActive(true);
-        }
-        else
-        {
-            startHighlight.SetActive(false);
-        }
-
-        if (towerCheck)
-        {
-            learnHighlight.SetActive(true);
-        }
-        else
-        {
-            learnHighlight.SetActive(false);
-        }
-
-        if(Input.GetMouseButton(0))
-        {
-            if(pathCheck)
+            if (pathCheck)
             {
-                SceneManager.LoadScene("Level");
+                startHighlight.SetActive(true);
             }
-            else if(towerCheck)
+            else
             {
-                SceneManager.LoadScene("Menu");
+                startHighlight.SetActive(false);
+            }
+
+            if (towerCheck)
+            {
+                learnHighlight.SetActive(true);
+            }
+            else
+            {
+                learnHighlight.SetActive(false);
+            }
+
+            if (Input.GetMouseButton(0))
+            {
+                if (pathCheck)
+                {
+                    SceneManager.LoadScene("Level");
+                }
+                else if (towerCheck)
+                {
+                    title.SetActive(false);
+                    information.SetActive(true);
+                }
             }
         }
     }

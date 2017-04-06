@@ -78,6 +78,7 @@
     <Compile Include="Assets\Art\Placeholders\Movement.cs" />
     <Compile Include="Assets\BasicEnemyController.cs" />
     <Compile Include="Assets\GameManager.cs" />
+    <Compile Include="Assets\InstructionController.cs" />
     <Compile Include="Assets\MenuController.cs" />
     <Compile Include="Assets\OverlayController.cs" />
     <Compile Include="Assets\ParticleController.cs" />
