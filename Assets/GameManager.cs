@@ -242,8 +242,21 @@ public class GameManager : MonoBehaviour {
             music.Play();
         }
 
-        if(activeWave) //Handles enemy spawning during waves. Skip to line 533 if you don't need to change this.
+        if(activeWave) //Handles enemy spawning during waves. Skip to line 568 if you don't need to change this.
         {
+
+            //Wave Spawnlist
+            //wave 1: 16 basic
+            //wave 2: 11 basic, 10 basic
+            //wave 3: 15 basic, 5 fast
+            //wave 4: 5 tanky, 15 basic
+            //wave 5: 11 basic, 5 fast, 10 basic, 5 fast, 10 tanky
+            //wave 6: 71 basic, 15 tanky
+            //wave 7: 21 fast, 20 fast, 20 fast
+            //wave 8: 6 tanky, 15 fast, 10 tanky, 20 fast
+            //wave 9: 51 basic
+            //wave 10: 101 basic, 50 fast, 25 tanky
+
             if (wave == 1)
             {
                 if (spawncounter <= 15 && spawntimer >= 1.5)
