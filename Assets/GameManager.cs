@@ -1,51 +1,57 @@
 ﻿using System.Collections;
+using UnityEngine.UI;
 using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.SceneManagement;
+using System;
 
 public class GameManager : MonoBehaviour {
 
-    public GameObject BasicEnemy;
+    // public: 
+    [Header("Lists")]
     public List<BasicEnemyController> BasicEnemies;
-
-    public GameObject Tower;
     public List<TowerController> Towers;
 
+    [Header("LayerMasks")]
     public LayerMask pathMask;
     public LayerMask towerMask;
 
+    [Header("TunableVar")]
     public int lives = 10;
-    public int money = 40;
+
+    public int money;
+    public int Money
+    {
+        get { return money; }
+        set { ShowMoneyChange(money - value);
+            money = value; }
+    }
+
     public int wave = 1;
     public int spawncounter = 0;
     public float spawntimer = 0f;
     public bool activeWave = false;
     public bool waveDone = false;
-    bool victory = false;
-    bool lossSet = false;
 
+    [Header("TextObjects")]
     public TextMesh LivesCounter;
     public TextMesh MoneyCounter;
     public TextMesh WaveCounter;
     public TextMesh EnemyCounter;
+    public TextMesh ScoreText;
+    public Text moneyInd;
+
+    [Header("Prefabs")]
     public GameObject LoseText;
     public GameObject WinText;
-    public TextMesh ScoreText;
     public GameObject ContinueText;
     public GameObject EndShade;
-
-    bool placementMode = false;
+    public GameObject indicatorTextForUpgrading;
     public GameObject overlay;
+    public GameObject Tower;
+    public GameObject BasicEnemy;
 
-    bool selecting = false;
-    TowerController selectedTower;
-
-    float countdown = 0;
-    int score = 0;
-    int postPhase = 0;
-
-    private AudioSource sound;
-    private AudioSource music;
+    [Header("AudioFiles")]
     public AudioClip ActiveWaveLoop;
     public AudioClip DowntimeLoop;
     public AudioClip FinalWaveLoop;
@@ -58,15 +64,44 @@ public class GameManager : MonoBehaviour {
     public AudioClip destroySound;
     public AudioClip hitSound;
     public AudioClip endBlips;
-    
-    // Use this for initialization
-	void Start () {
+
+    // private:
+    bool selecting = false;
+    TowerController selectedTower;
+
+    bool placementMode = false;
+
+    float countdown = 0;
+    int score = 0;
+    int postPhase = 0;
+
+    bool victory = false;
+    bool lossSet = false;
+
+
+    private AudioSource sound;
+    private AudioSource music;
+
+    //--------------------------------------------------------------------<
+    void Start () {
         var check = GetComponents<AudioSource>();
+        money = 40;
+
         sound = check[0];
         music = check[1];
         music.clip = DowntimeLoop;
         music.Play();
 	}
+
+	void Update ()
+    {
+        TestEnemies();
+        CreateTurret();
+        ReturnToMenu();
+        StartCurrentWave();
+        WaveHandling();
+    }
+
     IEnumerator sleep(float time) //Pauses the game for a moment, called when towers are placed and lives are lost
     {
         Time.timeScale = 0.0f;
@@ -74,30 +109,32 @@ public class GameManager : MonoBehaviour {
         Time.timeScale = 1.0f;
     }
 
-	// Update is called once per frame
-	void Update () {
-
-        if(Input.GetKeyDown(KeyCode.E)) //Test spawns enemies
+    private void TestEnemies()
+    {
+        if (Input.GetKeyDown(KeyCode.E)) //Test spawns enemies
         {
-            Object obj = Instantiate(BasicEnemy.gameObject, new Vector3(-6.7f, 6.21f, 0), Quaternion.identity);
+            GameObject obj = Instantiate(BasicEnemy.gameObject, new Vector3(-6.7f, 6.21f, 0), Quaternion.identity) as GameObject;
             BasicEnemyController e = ((GameObject)obj).GetComponent<BasicEnemyController>();
             BasicEnemies.Add(e);
         }
         if (Input.GetKeyDown(KeyCode.W)) //Test spawns fast enemies
         {
-            Object obj = Instantiate(BasicEnemy.gameObject, new Vector3(-6.7f, 6.21f, 0), Quaternion.identity);
-            BasicEnemyController e = ((GameObject)obj).GetComponent<BasicEnemyController>();
+            GameObject obj = Instantiate(BasicEnemy.gameObject, new Vector3(-6.7f, 6.21f, 0), Quaternion.identity) as GameObject;
+            BasicEnemyController e = (obj).GetComponent<BasicEnemyController>();
             e.special(1);
             BasicEnemies.Add(e);
         }
         if (Input.GetKeyDown(KeyCode.Q)) //Test spawns tanky enemies
         {
-            Object obj = Instantiate(BasicEnemy.gameObject, new Vector3(-6.7f, 6.21f, 0), Quaternion.identity);
-            BasicEnemyController e = ((GameObject)obj).GetComponent<BasicEnemyController>();
+            GameObject obj = Instantiate(BasicEnemy.gameObject, new Vector3(-6.7f, 6.21f, 0), Quaternion.identity)as GameObject;
+            BasicEnemyController e = (obj).GetComponent<BasicEnemyController>();
             e.special(2);
             BasicEnemies.Add(e);
         }
+    }
 
+    private void CreateTurret()
+    {
         if (Input.GetMouseButtonDown(1)) //Turns on placement overlay
         {
             if (placementMode)
@@ -116,6 +153,11 @@ public class GameManager : MonoBehaviour {
                 placementMode = true;
                 //sound.PlayOneShot(modeSwitch, 0.5f);
             }
+
+            if (indicatorTextForUpgrading != null)
+            {
+                indicatorTextForUpgrading.SetActive(false);
+            }
         }
 
         if (placementMode)  //Checks if there is room to place a tower, changes overlay color to represent this
@@ -126,7 +168,7 @@ public class GameManager : MonoBehaviour {
             RaycastHit2D hit = Physics2D.Raycast(mouseRay.origin, mouseRay.direction, 10, towerMask);
             bool towerCheck = hit.collider != null;
 
-            if (pathCheck || towerCheck || money < 10)
+            if (pathCheck || towerCheck || Money < 10)
             {
                 overlay.GetComponent<SpriteRenderer>().color = Color.red;
             }
@@ -154,14 +196,26 @@ public class GameManager : MonoBehaviour {
                 selecting = true;
                 placementMode = false;
                 overlay.SetActive(false);
+
+                // ------------
+                if (indicatorTextForUpgrading != null && selectedTower != null)
+                {
+                    indicatorTextForUpgrading.SetActive(true);
+                    Text[] texts = indicatorTextForUpgrading.GetComponentsInChildren<Text>();
+
+                    texts[0].text = "1) Up rate       ";
+                    texts[1].text = "2) Up range    ";
+                    texts[2].text = "3) Up damage";
+                }
+                // ------------
                 //sound.PlayOneShot(modeSwitch, 0.5f);
             }
-            else if (placementMode && !pathCheck && !towerCheck && money >= 10) //Creates Towers
+            else if (placementMode && !pathCheck && !towerCheck && Money >= 10) //Creates Towers
             {
-                Object obj = Instantiate(Tower.gameObject, new Vector3(mousePos.x, mousePos.y, 0), Quaternion.identity);
-                TowerController t = ((GameObject)obj).GetComponent<TowerController>();
+                GameObject obj = Instantiate(Tower.gameObject, new Vector3(mousePos.x, mousePos.y, 0), Quaternion.identity) as GameObject;
+                TowerController t = (obj).GetComponent<TowerController>();
                 Towers.Add(t);
-                money -= 10;
+                Money -= 10;
                 if (selecting)
                 {
                     selectedTower.select(false);
@@ -170,13 +224,27 @@ public class GameManager : MonoBehaviour {
                 sound.PlayOneShot(towerBuild, 0.5f);
                 StartCoroutine("sleep", 0.1f);
             }
-            else if(selecting)  //Deselects towers if nothing is clicked on
+            else if (selecting)  //Deselects towers if nothing is clicked on
             {
                 selectedTower.select(false);
                 selecting = false;
             }
         }
 
+        if (indicatorTextForUpgrading.activeSelf && selectedTower != null)
+        {
+            Image[] images = indicatorTextForUpgrading.GetComponentsInChildren<Image>();
+
+            images[0].color = selectedTower.UpRate ? Color.red : Color.green;
+
+            images[1].color = selectedTower.UpRange ? Color.red : Color.green;
+
+            images[2].color = selectedTower.UpDamage ? Color.red : Color.green;
+        }
+    }
+
+    private void ReturnToMenu()
+    {
         //Goes back to menu
         if (Input.GetKeyUp(KeyCode.Escape))
         {
@@ -185,45 +253,49 @@ public class GameManager : MonoBehaviour {
 
         if (selecting) //Handles upgrading and selling selected towers
         {
-            if (Input.GetKeyDown(KeyCode.Alpha1) && money >= 10 && !selectedTower.UpRate)
+            if (Input.GetKeyDown(KeyCode.Alpha1) && Money >= 10 && !selectedTower.UpRate)
             {
                 selectedTower.FireRateUpgrade();
-                money -= 10;
+                Money -= 10;
             }
-            else if (Input.GetKeyDown(KeyCode.Alpha2) && money >= 10 && !selectedTower.UpRange)
+            else if (Input.GetKeyDown(KeyCode.Alpha2) && Money >= 10 && !selectedTower.UpRange)
             {
                 selectedTower.RangeUpgrade();
-                money -= 10;
+                Money -= 10;
             }
-            else if (Input.GetKeyDown(KeyCode.Alpha3) && money >= 10 && !selectedTower.UpDamage)
+            else if (Input.GetKeyDown(KeyCode.Alpha3) && Money >= 10 && !selectedTower.UpDamage)
             {
                 selectedTower.DamageUpgrade();
-                money -= 10;
+                Money -= 10;
             }
             else if (Input.GetKeyDown(KeyCode.S))
             {
-                if(selectedTower.UpDamage)
+                if (selectedTower.UpDamage)
                 {
-                    money += 5;
+                    Money += 5;
                 }
-                if(selectedTower.UpRange)
+                if (selectedTower.UpRange)
                 {
-                    money += 5;
+                    Money += 5;
                 }
-                if(selectedTower.UpRate)
+                if (selectedTower.UpRate)
                 {
-                    money += 5;
+                    Money += 5;
                 }
+                indicatorTextForUpgrading.SetActive(false);
                 selectedTower.select(false);
                 selecting = false;
                 Towers.Remove(selectedTower);
                 Destroy(selectedTower.gameObject);
-                money += 5;
+                Money += 5;
                 sound.PlayOneShot(sellTower, 0.75f);
             }
         }
+    }
 
-        if(Input.GetKeyDown(KeyCode.Space) && !activeWave && !victory) //Starts the current wave
+    private void StartCurrentWave()
+    {
+        if (Input.GetKeyDown(KeyCode.Space) && !activeWave && !victory) //Starts the current wave
         {
             activeWave = true;
             spawncounter = 0;
@@ -241,8 +313,11 @@ public class GameManager : MonoBehaviour {
             }
             music.Play();
         }
+    }
 
-        if(activeWave) //Handles enemy spawning during waves. Skip to line 568 if you don't need to change this.
+    private void WaveHandling()
+    {
+        if (activeWave) //Handles enemy spawning during waves. Skip to line 568 if you don't need to change this.
         {
 
             //Wave Spawnlist
@@ -261,8 +336,8 @@ public class GameManager : MonoBehaviour {
             {
                 if (spawncounter <= 15 && spawntimer >= 1.5)
                 {
-                    Object obj = Instantiate(BasicEnemy.gameObject, new Vector3(-6.7f, 6.21f, 0), Quaternion.identity);
-                    BasicEnemyController e = ((GameObject)obj).GetComponent<BasicEnemyController>();
+                    GameObject obj = Instantiate(BasicEnemy.gameObject, new Vector3(-6.7f, 6.21f, 0), Quaternion.identity) as GameObject;
+                    BasicEnemyController e = (obj).GetComponent<BasicEnemyController>();
                     BasicEnemies.Add(e);
                     spawncounter++;
                     spawntimer = 0;
@@ -276,16 +351,16 @@ public class GameManager : MonoBehaviour {
             {
                 if (spawncounter <= 10 && spawntimer >= 1)
                 {
-                    Object obj = Instantiate(BasicEnemy.gameObject, new Vector3(-6.7f, 6.21f, 0), Quaternion.identity);
-                    BasicEnemyController e = ((GameObject)obj).GetComponent<BasicEnemyController>();
+                    GameObject obj = Instantiate(BasicEnemy.gameObject, new Vector3(-6.7f, 6.21f, 0), Quaternion.identity) as GameObject;
+                    BasicEnemyController e = (obj).GetComponent<BasicEnemyController>();
                     BasicEnemies.Add(e);
                     spawncounter++;
                     spawntimer = 0;
                 }
                 else if (spawncounter > 10 && spawncounter <= 20 && spawntimer >= 0.7)
                 {
-                    Object obj = Instantiate(BasicEnemy.gameObject, new Vector3(-6.7f, 6.21f, 0), Quaternion.identity);
-                    BasicEnemyController e = ((GameObject)obj).GetComponent<BasicEnemyController>();
+                    GameObject obj = Instantiate(BasicEnemy.gameObject, new Vector3(-6.7f, 6.21f, 0), Quaternion.identity) as GameObject;
+                    BasicEnemyController e = (obj).GetComponent<BasicEnemyController>();
                     BasicEnemies.Add(e);
                     spawncounter++;
                     spawntimer = 0;
@@ -299,16 +374,16 @@ public class GameManager : MonoBehaviour {
             {
                 if (spawncounter < 15 && spawntimer >= 0.8)
                 {
-                    Object obj = Instantiate(BasicEnemy.gameObject, new Vector3(-6.7f, 6.21f, 0), Quaternion.identity);
-                    BasicEnemyController e = ((GameObject)obj).GetComponent<BasicEnemyController>();
+                    GameObject obj = Instantiate(BasicEnemy.gameObject, new Vector3(-6.7f, 6.21f, 0), Quaternion.identity) as GameObject;
+                    BasicEnemyController e = (obj).GetComponent<BasicEnemyController>();
                     BasicEnemies.Add(e);
                     spawncounter++;
                     spawntimer = 0;
                 }
                 else if (spawncounter == 15 && spawntimer >= 5)
                 {
-                    Object obj = Instantiate(BasicEnemy.gameObject, new Vector3(-6.7f, 6.21f, 0), Quaternion.identity);
-                    BasicEnemyController e = ((GameObject)obj).GetComponent<BasicEnemyController>();
+                    GameObject obj = Instantiate(BasicEnemy.gameObject, new Vector3(-6.7f, 6.21f, 0), Quaternion.identity) as GameObject;
+                    BasicEnemyController e = (obj).GetComponent<BasicEnemyController>();
                     e.special(1);
                     BasicEnemies.Add(e);
                     spawncounter++;
@@ -316,8 +391,8 @@ public class GameManager : MonoBehaviour {
                 }
                 else if (spawncounter > 15 && spawncounter <= 19 && spawntimer >= 0.5)
                 {
-                    Object obj = Instantiate(BasicEnemy.gameObject, new Vector3(-6.7f, 6.21f, 0), Quaternion.identity);
-                    BasicEnemyController e = ((GameObject)obj).GetComponent<BasicEnemyController>();
+                    GameObject obj = Instantiate(BasicEnemy.gameObject, new Vector3(-6.7f, 6.21f, 0), Quaternion.identity) as GameObject;
+                    BasicEnemyController e = (obj).GetComponent<BasicEnemyController>();
                     e.special(1);
                     BasicEnemies.Add(e);
                     spawncounter++;
@@ -332,8 +407,8 @@ public class GameManager : MonoBehaviour {
             {
                 if (spawncounter <= 4 && spawntimer >= 3)
                 {
-                    Object obj = Instantiate(BasicEnemy.gameObject, new Vector3(-6.7f, 6.21f, 0), Quaternion.identity);
-                    BasicEnemyController e = ((GameObject)obj).GetComponent<BasicEnemyController>();
+                    GameObject obj = Instantiate(BasicEnemy.gameObject, new Vector3(-6.7f, 6.21f, 0), Quaternion.identity) as GameObject;
+                    BasicEnemyController e = (obj).GetComponent<BasicEnemyController>();
                     e.special(2);
                     BasicEnemies.Add(e);
                     spawncounter++;
@@ -341,8 +416,8 @@ public class GameManager : MonoBehaviour {
                 }
                 else if (spawncounter > 4 && spawncounter <= 20 && spawntimer >= 0.6)
                 {
-                    Object obj = Instantiate(BasicEnemy.gameObject, new Vector3(-6.7f, 6.21f, 0), Quaternion.identity);
-                    BasicEnemyController e = ((GameObject)obj).GetComponent<BasicEnemyController>();
+                    GameObject obj = Instantiate(BasicEnemy.gameObject, new Vector3(-6.7f, 6.21f, 0), Quaternion.identity) as GameObject;
+                    BasicEnemyController e = (obj).GetComponent<BasicEnemyController>();
                     BasicEnemies.Add(e);
                     spawncounter++;
                     spawntimer = 0;
@@ -356,16 +431,16 @@ public class GameManager : MonoBehaviour {
             {
                 if (spawncounter <= 10 && spawntimer >= 0.6)
                 {
-                    Object obj = Instantiate(BasicEnemy.gameObject, new Vector3(-6.7f, 6.21f, 0), Quaternion.identity);
-                    BasicEnemyController e = ((GameObject)obj).GetComponent<BasicEnemyController>();
+                    GameObject obj = Instantiate(BasicEnemy.gameObject, new Vector3(-6.7f, 6.21f, 0), Quaternion.identity) as GameObject;
+                    BasicEnemyController e = (obj).GetComponent<BasicEnemyController>();
                     BasicEnemies.Add(e);
                     spawncounter++;
                     spawntimer = 0;
                 }
                 else if (spawncounter > 10 && spawncounter <= 15 && spawntimer >= 0.2)
                 {
-                    Object obj = Instantiate(BasicEnemy.gameObject, new Vector3(-6.7f, 6.21f, 0), Quaternion.identity);
-                    BasicEnemyController e = ((GameObject)obj).GetComponent<BasicEnemyController>();
+                    GameObject obj = Instantiate(BasicEnemy.gameObject, new Vector3(-6.7f, 6.21f, 0), Quaternion.identity) as GameObject;
+                    BasicEnemyController e = (obj).GetComponent<BasicEnemyController>();
                     e.special(1);
                     BasicEnemies.Add(e);
                     spawncounter++;
@@ -373,16 +448,16 @@ public class GameManager : MonoBehaviour {
                 }
                 else if (spawncounter > 15 && spawncounter <= 25 && spawntimer >= 0.6)
                 {
-                    Object obj = Instantiate(BasicEnemy.gameObject, new Vector3(-6.7f, 6.21f, 0), Quaternion.identity);
-                    BasicEnemyController e = ((GameObject)obj).GetComponent<BasicEnemyController>();
+                    GameObject obj = Instantiate(BasicEnemy.gameObject, new Vector3(-6.7f, 6.21f, 0), Quaternion.identity) as GameObject;
+                    BasicEnemyController e = (obj).GetComponent<BasicEnemyController>();
                     BasicEnemies.Add(e);
                     spawncounter++;
                     spawntimer = 0;
                 }
                 else if (spawncounter > 25 && spawncounter <= 30 && spawntimer >= 0.2)
                 {
-                    Object obj = Instantiate(BasicEnemy.gameObject, new Vector3(-6.7f, 6.21f, 0), Quaternion.identity);
-                    BasicEnemyController e = ((GameObject)obj).GetComponent<BasicEnemyController>();
+                    GameObject obj = Instantiate(BasicEnemy.gameObject, new Vector3(-6.7f, 6.21f, 0), Quaternion.identity) as GameObject;
+                    BasicEnemyController e = (obj).GetComponent<BasicEnemyController>();
                     e.special(1);
                     BasicEnemies.Add(e);
                     spawncounter++;
@@ -390,8 +465,8 @@ public class GameManager : MonoBehaviour {
                 }
                 else if (spawncounter > 30 && spawncounter <= 30 + (wave * 2) && spawntimer >= 1)
                 {
-                    Object obj = Instantiate(BasicEnemy.gameObject, new Vector3(-6.7f, 6.21f, 0), Quaternion.identity);
-                    BasicEnemyController e = ((GameObject)obj).GetComponent<BasicEnemyController>();
+                    GameObject obj = Instantiate(BasicEnemy.gameObject, new Vector3(-6.7f, 6.21f, 0), Quaternion.identity) as GameObject;
+                    BasicEnemyController e = (obj).GetComponent<BasicEnemyController>();
                     e.special(2);
                     BasicEnemies.Add(e);
                     spawncounter++;
@@ -406,16 +481,16 @@ public class GameManager : MonoBehaviour {
             {
                 if (spawncounter <= 70 && spawntimer >= 0.15)
                 {
-                    Object obj = Instantiate(BasicEnemy.gameObject, new Vector3(-6.7f, 6.21f, 0), Quaternion.identity);
-                    BasicEnemyController e = ((GameObject)obj).GetComponent<BasicEnemyController>();
+                    GameObject obj = Instantiate(BasicEnemy.gameObject, new Vector3(-6.7f, 6.21f, 0), Quaternion.identity) as GameObject;
+                    BasicEnemyController e = (obj).GetComponent<BasicEnemyController>();
                     BasicEnemies.Add(e);
                     spawncounter++;
                     spawntimer = 0;
                 }
                 else if (spawncounter > 70 && spawncounter <= 85 && spawntimer >= 0.4)
                 {
-                    Object obj = Instantiate(BasicEnemy.gameObject, new Vector3(-6.7f, 6.21f, 0), Quaternion.identity);
-                    BasicEnemyController e = ((GameObject)obj).GetComponent<BasicEnemyController>();
+                    GameObject obj = Instantiate(BasicEnemy.gameObject, new Vector3(-6.7f, 6.21f, 0), Quaternion.identity) as GameObject;
+                    BasicEnemyController e = obj.GetComponent<BasicEnemyController>();
                     e.special(2);
                     BasicEnemies.Add(e);
                     spawncounter++;
@@ -430,8 +505,8 @@ public class GameManager : MonoBehaviour {
             {
                 if (spawncounter <= 20 && spawntimer >= 0.1)
                 {
-                    Object obj = Instantiate(BasicEnemy.gameObject, new Vector3(-6.7f, 6.21f, 0), Quaternion.identity);
-                    BasicEnemyController e = ((GameObject)obj).GetComponent<BasicEnemyController>();
+                    GameObject obj = Instantiate(BasicEnemy.gameObject, new Vector3(-6.7f, 6.21f, 0), Quaternion.identity) as GameObject;
+                    BasicEnemyController e = (obj).GetComponent<BasicEnemyController>();
                     e.special(1);
                     BasicEnemies.Add(e);
                     spawncounter++;
@@ -444,8 +519,8 @@ public class GameManager : MonoBehaviour {
                 }
                 else if (spawncounter > 21 && spawncounter <= 41 && spawntimer >= 0.1)
                 {
-                    Object obj = Instantiate(BasicEnemy.gameObject, new Vector3(-6.7f, 6.21f, 0), Quaternion.identity);
-                    BasicEnemyController e = ((GameObject)obj).GetComponent<BasicEnemyController>();
+                    GameObject obj = Instantiate(BasicEnemy.gameObject, new Vector3(-6.7f, 6.21f, 0), Quaternion.identity)as GameObject;
+                    BasicEnemyController e = (obj).GetComponent<BasicEnemyController>();
                     e.special(1);
                     BasicEnemies.Add(e);
                     spawncounter++;
@@ -458,8 +533,8 @@ public class GameManager : MonoBehaviour {
                 }
                 else if (spawncounter > 42 && spawncounter <= 62 && spawntimer >= 0.1)
                 {
-                    Object obj = Instantiate(BasicEnemy.gameObject, new Vector3(-6.7f, 6.21f, 0), Quaternion.identity);
-                    BasicEnemyController e = ((GameObject)obj).GetComponent<BasicEnemyController>();
+                    GameObject obj = Instantiate(BasicEnemy.gameObject, new Vector3(-6.7f, 6.21f, 0), Quaternion.identity) as GameObject;
+                    BasicEnemyController e = (obj).GetComponent<BasicEnemyController>();
                     e.special(1);
                     BasicEnemies.Add(e);
                     spawncounter++;
@@ -474,8 +549,8 @@ public class GameManager : MonoBehaviour {
             {
                 if (spawncounter <= 5 && spawntimer >= 0.2)
                 {
-                    Object obj = Instantiate(BasicEnemy.gameObject, new Vector3(-6.7f, 6.21f, 0), Quaternion.identity);
-                    BasicEnemyController e = ((GameObject)obj).GetComponent<BasicEnemyController>();
+                    GameObject obj = Instantiate(BasicEnemy.gameObject, new Vector3(-6.7f, 6.21f, 0), Quaternion.identity) as GameObject;
+                    BasicEnemyController e = (obj).GetComponent<BasicEnemyController>();
                     e.special(2);
                     BasicEnemies.Add(e);
                     spawncounter++;
@@ -483,8 +558,8 @@ public class GameManager : MonoBehaviour {
                 }
                 else if (spawncounter > 5 && spawncounter <= 20 && spawntimer >= 0.1)
                 {
-                    Object obj = Instantiate(BasicEnemy.gameObject, new Vector3(-6.7f, 6.21f, 0), Quaternion.identity);
-                    BasicEnemyController e = ((GameObject)obj).GetComponent<BasicEnemyController>();
+                    GameObject obj = Instantiate(BasicEnemy.gameObject, new Vector3(-6.7f, 6.21f, 0), Quaternion.identity) as GameObject;
+                    BasicEnemyController e = (obj).GetComponent<BasicEnemyController>();
                     e.special(1);
                     BasicEnemies.Add(e);
                     spawncounter++;
@@ -492,8 +567,8 @@ public class GameManager : MonoBehaviour {
                 }
                 if (spawncounter > 20 && spawncounter <= 30 && spawntimer >= 0.2)
                 {
-                    Object obj = Instantiate(BasicEnemy.gameObject, new Vector3(-6.7f, 6.21f, 0), Quaternion.identity);
-                    BasicEnemyController e = ((GameObject)obj).GetComponent<BasicEnemyController>();
+                    GameObject obj = Instantiate(BasicEnemy.gameObject, new Vector3(-6.7f, 6.21f, 0), Quaternion.identity) as GameObject;
+                    BasicEnemyController e = (obj).GetComponent<BasicEnemyController>();
                     e.special(2);
                     BasicEnemies.Add(e);
                     spawncounter++;
@@ -501,8 +576,8 @@ public class GameManager : MonoBehaviour {
                 }
                 else if (spawncounter > 30 && spawncounter <= 50 && spawntimer >= 0.1)
                 {
-                    Object obj = Instantiate(BasicEnemy.gameObject, new Vector3(-6.7f, 6.21f, 0), Quaternion.identity);
-                    BasicEnemyController e = ((GameObject)obj).GetComponent<BasicEnemyController>();
+                    GameObject obj = Instantiate(BasicEnemy.gameObject, new Vector3(-6.7f, 6.21f, 0), Quaternion.identity) as GameObject;
+                    BasicEnemyController e = (obj).GetComponent<BasicEnemyController>();
                     e.special(1);
                     BasicEnemies.Add(e);
                     spawncounter++;
@@ -517,8 +592,8 @@ public class GameManager : MonoBehaviour {
             {
                 if (spawncounter <= 50 && spawntimer >= 0.05)
                 {
-                    Object obj = Instantiate(BasicEnemy.gameObject, new Vector3(-6.7f, 6.21f, 0), Quaternion.identity);
-                    BasicEnemyController e = ((GameObject)obj).GetComponent<BasicEnemyController>();
+                    GameObject obj = Instantiate(BasicEnemy.gameObject, new Vector3(-6.7f, 6.21f, 0), Quaternion.identity) as GameObject;
+                    BasicEnemyController e = (obj).GetComponent<BasicEnemyController>();
                     e.special(1);
                     BasicEnemies.Add(e);
                     spawncounter++;
@@ -533,16 +608,16 @@ public class GameManager : MonoBehaviour {
             {
                 if (spawncounter <= 100 && spawntimer >= 0.1)
                 {
-                    Object obj = Instantiate(BasicEnemy.gameObject, new Vector3(-6.7f, 6.21f, 0), Quaternion.identity);
-                    BasicEnemyController e = ((GameObject)obj).GetComponent<BasicEnemyController>();
+                    GameObject obj = Instantiate(BasicEnemy.gameObject, new Vector3(-6.7f, 6.21f, 0), Quaternion.identity) as GameObject;
+                    BasicEnemyController e = (obj).GetComponent<BasicEnemyController>();
                     BasicEnemies.Add(e);
                     spawncounter++;
                     spawntimer = 0;
                 }
                 else if (spawncounter > 100 && spawncounter <= 150 && spawntimer >= 0.1)
                 {
-                    Object obj = Instantiate(BasicEnemy.gameObject, new Vector3(-6.7f, 6.21f, 0), Quaternion.identity);
-                    BasicEnemyController e = ((GameObject)obj).GetComponent<BasicEnemyController>();
+                    GameObject obj = Instantiate(BasicEnemy.gameObject, new Vector3(-6.7f, 6.21f, 0), Quaternion.identity) as GameObject;
+                    BasicEnemyController e = (obj).GetComponent<BasicEnemyController>();
                     e.special(1);
                     BasicEnemies.Add(e);
                     spawncounter++;
@@ -550,8 +625,8 @@ public class GameManager : MonoBehaviour {
                 }
                 else if (spawncounter > 150 && spawncounter <= 175 && spawntimer >= 0.1)
                 {
-                    Object obj = Instantiate(BasicEnemy.gameObject, new Vector3(-6.7f, 6.21f, 0), Quaternion.identity);
-                    BasicEnemyController e = ((GameObject)obj).GetComponent<BasicEnemyController>();
+                    GameObject obj = Instantiate(BasicEnemy.gameObject, new Vector3(-6.7f, 6.21f, 0), Quaternion.identity) as GameObject;
+                    BasicEnemyController e = (obj).GetComponent<BasicEnemyController>();
                     e.special(2);
                     BasicEnemies.Add(e);
                     spawncounter++;
@@ -593,20 +668,20 @@ public class GameManager : MonoBehaviour {
         else if (postPhase == 2)
         {
             ScoreText.text = "Score: " + score;
-            if(money > 0)
+            if (Money > 0)
             {
                 sound.PlayOneShot(hitSound, 0.5f);
-                money--;
+                Money--;
                 score++;
             }
-            else if (money <= 0 && lives > 0)
+            else if (Money <= 0 && lives > 0)
             {
                 sound.PlayOneShot(sellTower, 0.3f);
                 lives--;
                 score += 10;
                 countdown = 0.3f;
             }
-            else if (money <= 0 && lives <= 0)
+            else if (Money <= 0 && lives <= 0)
             {
                 postPhase = 3;
                 countdown = 1;
@@ -639,10 +714,10 @@ public class GameManager : MonoBehaviour {
             countdown = 1.5f;
         }
 
-        if (activeWave && waveDone && BasicEnemies.Count==0) //Determines if the wave is done
+        if (activeWave && waveDone && BasicEnemies.Count == 0) //Determines if the wave is done
         {
             activeWave = false;
-            money += 10;
+            Money += 10;
             if (wave == 10) //Checks if the game is won, possibly initiate a scene change here
             {
                 victory = true;
@@ -662,7 +737,7 @@ public class GameManager : MonoBehaviour {
 
         //Handles UI text
         LivesCounter.text = "Lives: " + lives.ToString();
-        MoneyCounter.text = "Money: " + money.ToString();
+        MoneyCounter.text = "Money: " + Money.ToString();
         WaveCounter.text = "Wave " + wave.ToString();
         if (activeWave)
         {
@@ -676,7 +751,6 @@ public class GameManager : MonoBehaviour {
         {
             EnemyCounter.text = "Press Space to begin wave";
         }
-        
     }
 
     public void removeEnemy(BasicEnemyController b, bool breakthrough) //Removes enemies that are destroyed or reach the end
@@ -692,11 +766,41 @@ public class GameManager : MonoBehaviour {
         }
         else if (!lossSet)
         {
-            money += 1;
+            Money += 1;
             sound.PlayOneShot(destroySound, 0.75f);
         }
         BasicEnemies.Remove(b);
         Destroy(b.gameObject);
     }
-    
+
+    private void ShowMoneyChange(int i)
+    {
+        
+        StartCoroutine("showMoneyChangeRoutine", i);
+    }
+
+    IEnumerator showMoneyChangeRoutine(int i)
+    {
+        Vector3 pos = moneyInd.transform.position;
+        float time = 50f;
+
+        if(moneyInd!= null)
+        {
+            moneyInd.gameObject.SetActive(true);
+            moneyInd.text = "-" + i.ToString();
+            moneyInd.rectTransform.position = pos;
+        }
+
+        while (time > 0)
+        {
+            moneyInd.rectTransform.position += new Vector3(0f, 3f, 0f);
+            time--;
+            yield return null;
+        }
+
+        moneyInd.gameObject.SetActive(false);
+        time = 20;
+        moneyInd.text = "";
+        moneyInd.rectTransform.position = pos;
+    }
 }
