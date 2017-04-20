@@ -31,6 +31,7 @@ public class TowerController : MonoBehaviour {
     public GameObject upgradedIndicator;
     public GameObject orbital;
     public GameObject highlight;
+    public GameObject hoverIndicator;
 
     public Sprite blueTower;
     public Sprite yellowTower;
@@ -97,6 +98,7 @@ public class TowerController : MonoBehaviour {
 
     public void FireRateUpgrade() //Deals with when the tower's firerate is upgraded
     {
+        GetComponent<SpriteRenderer>().color = Color.white;
         UpRate = true;
         if (UpRange && UpDamage)
         {
@@ -134,6 +136,7 @@ public class TowerController : MonoBehaviour {
 
     public void RangeUpgrade() //Deals with when the tower's range is upgraded
     {
+        GetComponent<SpriteRenderer>().color = Color.white;
         range = 6;
         UpRange = true;
         speed = 20;
@@ -175,6 +178,7 @@ public class TowerController : MonoBehaviour {
 
     public void DamageUpgrade() //Deals with when the tower's damage is upgraded
     {
+        GetComponent<SpriteRenderer>().color = Color.white;
         damage = 2;
         UpDamage = true;
         if (UpRange && UpRate)
@@ -208,6 +212,18 @@ public class TowerController : MonoBehaviour {
             GetComponent<SpriteRenderer>().sprite = redTower;
             type = 3;
             sound.PlayOneShot(PowerSound);
+        }
+    }
+
+    public void hover(bool hovering)
+    {
+        if (hovering)
+        {
+            hoverIndicator.SetActive(true);
+        }
+        else
+        {
+            hoverIndicator.SetActive(false);
         }
     }
 

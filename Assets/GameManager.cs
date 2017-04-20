@@ -32,6 +32,7 @@ public class GameManager : MonoBehaviour {
     public float spawntimer = 0f;
     public bool activeWave = false;
     public bool waveDone = false;
+    public bool debugMode = false;
 
     [Header("TextObjects")]
     public TextMesh LivesCounter;
@@ -46,10 +47,17 @@ public class GameManager : MonoBehaviour {
     public GameObject WinText;
     public GameObject ContinueText;
     public GameObject EndShade;
+    public GameObject LoseShade;
     public GameObject indicatorTextForUpgrading;
     public GameObject overlay;
     public GameObject Tower;
     public GameObject BasicEnemy;
+    public GameObject ResetText;
+    public GameObject upgradeText;
+    public GameObject rateBox;
+    public GameObject rangeBox;
+    public GameObject damageBox;
+    public GameObject debugIndicator;
 
     [Header("AudioFiles")]
     public AudioClip ActiveWaveLoop;
@@ -68,6 +76,7 @@ public class GameManager : MonoBehaviour {
     // private:
     bool selecting = false;
     TowerController selectedTower;
+    TowerController hoverTower;
 
     bool placementMode = false;
 
@@ -111,30 +120,71 @@ public class GameManager : MonoBehaviour {
 
     private void TestEnemies()
     {
-        if (Input.GetKeyDown(KeyCode.E)) //Test spawns enemies
+        if (Input.GetKeyDown(KeyCode.D))
         {
-            GameObject obj = Instantiate(BasicEnemy.gameObject, new Vector3(-6.7f, 6.21f, 0), Quaternion.identity) as GameObject;
-            BasicEnemyController e = ((GameObject)obj).GetComponent<BasicEnemyController>();
-            BasicEnemies.Add(e);
+            if(debugMode)
+            {
+                debugMode = false;
+                debugIndicator.SetActive(false);
+            }
+            else
+            {
+                debugMode = true;
+                debugIndicator.SetActive(true);
+            }
         }
-        if (Input.GetKeyDown(KeyCode.W)) //Test spawns fast enemies
+        if (debugMode)
         {
-            GameObject obj = Instantiate(BasicEnemy.gameObject, new Vector3(-6.7f, 6.21f, 0), Quaternion.identity) as GameObject;
-            BasicEnemyController e = (obj).GetComponent<BasicEnemyController>();
-            e.special(1);
-            BasicEnemies.Add(e);
-        }
-        if (Input.GetKeyDown(KeyCode.Q)) //Test spawns tanky enemies
-        {
-            GameObject obj = Instantiate(BasicEnemy.gameObject, new Vector3(-6.7f, 6.21f, 0), Quaternion.identity)as GameObject;
-            BasicEnemyController e = (obj).GetComponent<BasicEnemyController>();
-            e.special(2);
-            BasicEnemies.Add(e);
+            if (Input.GetKeyDown(KeyCode.E)) //Test spawns enemies
+            {
+                GameObject obj = Instantiate(BasicEnemy.gameObject, new Vector3(-6.7f, 6.21f, 0), Quaternion.identity) as GameObject;
+                BasicEnemyController e = ((GameObject)obj).GetComponent<BasicEnemyController>();
+                BasicEnemies.Add(e);
+            }
+            if (Input.GetKeyDown(KeyCode.W)) //Test spawns fast enemies
+            {
+                GameObject obj = Instantiate(BasicEnemy.gameObject, new Vector3(-6.7f, 6.21f, 0), Quaternion.identity) as GameObject;
+                BasicEnemyController e = (obj).GetComponent<BasicEnemyController>();
+                e.special(1);
+                BasicEnemies.Add(e);
+            }
+            if (Input.GetKeyDown(KeyCode.Q)) //Test spawns tanky enemies
+            {
+                GameObject obj = Instantiate(BasicEnemy.gameObject, new Vector3(-6.7f, 6.21f, 0), Quaternion.identity) as GameObject;
+                BasicEnemyController e = (obj).GetComponent<BasicEnemyController>();
+                e.special(2);
+                BasicEnemies.Add(e);
+            }
+            if (Input.GetKeyDown(KeyCode.L))
+            {
+                lives++;
+            }
+            if (Input.GetKeyDown(KeyCode.M))
+            {
+                money += 10;
+            }
         }
     }
 
     private void CreateTurret()
     {
+        if (selecting)
+        {
+            if (selectedTower.UpRate)
+            {
+                rateBox.SetActive(true);
+            }
+
+            if (selectedTower.UpRange)
+            {
+                rangeBox.SetActive(true);
+            }
+
+            if (selectedTower.UpDamage)
+            {
+                damageBox.SetActive(true);
+            }
+        }
         if (Input.GetMouseButtonDown(1)) //Turns on placement overlay
         {
             if (placementMode)
@@ -159,15 +209,27 @@ public class GameManager : MonoBehaviour {
                 indicatorTextForUpgrading.SetActive(false);
             }
         }
+        
+        foreach(TowerController t in Towers)
+        {
+            t.hover(false);
+        }
+
+        Vector3 mousePos = Camera.main.ScreenToWorldPoint(Input.mousePosition);
+        Ray mouseRay = Camera.main.ScreenPointToRay(Input.mousePosition);
+        bool pathCheck = Physics.Raycast(new Ray(mousePos, Vector3.forward), 10, pathMask);
+        RaycastHit2D hit = Physics2D.Raycast(mouseRay.origin, mouseRay.direction, 10, towerMask);
+        bool towerCheck = hit.collider != null;
+        
+        if(towerCheck)
+        {
+            hoverTower = hit.collider.gameObject.GetComponent<TowerController>();
+            hoverTower.hover(true);
+        }
+
 
         if (placementMode)  //Checks if there is room to place a tower, changes overlay color to represent this
         {
-            Vector3 mousePos = Camera.main.ScreenToWorldPoint(Input.mousePosition);
-            Ray mouseRay = Camera.main.ScreenPointToRay(Input.mousePosition);
-            bool pathCheck = Physics.Raycast(new Ray(mousePos, Vector3.forward), 10, pathMask);
-            RaycastHit2D hit = Physics2D.Raycast(mouseRay.origin, mouseRay.direction, 10, towerMask);
-            bool towerCheck = hit.collider != null;
-
             if (pathCheck || towerCheck || Money < 10)
             {
                 overlay.GetComponent<SpriteRenderer>().color = Color.red;
@@ -180,19 +242,33 @@ public class GameManager : MonoBehaviour {
 
         if (Input.GetMouseButtonDown(0)) //Creates and selects towers
         {
-            Vector3 mousePos = Camera.main.ScreenToWorldPoint(Input.mousePosition);
-            Ray mouseRay = Camera.main.ScreenPointToRay(Input.mousePosition);
-            bool pathCheck = Physics.Raycast(new Ray(mousePos, Vector3.forward), 10, pathMask);
-            RaycastHit2D hit = Physics2D.Raycast(mouseRay.origin, mouseRay.direction, 10, towerMask);
-            bool towerCheck = hit.collider != null;
             if (towerCheck)
             {
                 if (selecting)
                 {
+                    rateBox.SetActive(false);
+                    rangeBox.SetActive(false);
+                    damageBox.SetActive(false);
+                    upgradeText.SetActive(false);
                     selectedTower.select(false);
                 }
                 selectedTower = hit.collider.gameObject.GetComponent<TowerController>();
                 selectedTower.select(true);
+                upgradeText.SetActive(true);
+                if (selectedTower.UpRate)
+                {
+                    rateBox.SetActive(true);
+                }
+
+                if (selectedTower.UpRange)
+                {
+                    rangeBox.SetActive(true);
+                }
+
+                if (selectedTower.UpDamage)
+                {
+                    damageBox.SetActive(true);
+                }
                 selecting = true;
                 placementMode = false;
                 overlay.SetActive(false);
@@ -220,6 +296,10 @@ public class GameManager : MonoBehaviour {
                 {
                     selectedTower.select(false);
                     selecting = false;
+                    rateBox.SetActive(false);
+                    rangeBox.SetActive(false);
+                    damageBox.SetActive(false);
+                    upgradeText.SetActive(false);
                 }
                 sound.PlayOneShot(towerBuild, 0.5f);
                 StartCoroutine("sleep", 0.1f);
@@ -228,6 +308,10 @@ public class GameManager : MonoBehaviour {
             {
                 selectedTower.select(false);
                 selecting = false;
+                rateBox.SetActive(false);
+                rangeBox.SetActive(false);
+                damageBox.SetActive(false);
+                upgradeText.SetActive(false);
             }
         }
 
@@ -654,15 +738,28 @@ public class GameManager : MonoBehaviour {
             SceneManager.LoadScene("Title");
         }
 
+        if ((Input.GetKey(KeyCode.Space)) && lossSet)
+        {
+            SceneManager.LoadScene("Level");
+        }
+
         if (countdown > 0) //Deals with the timing for the post game screens
         {
             countdown -= Time.deltaTime;
         }
         else if (postPhase == 1)
         {
+            if (lossSet)
+            {
+                postPhase = 3;
+                ResetText.gameObject.SetActive(true);
+            }
+            else
+            {
+                ScoreText.gameObject.SetActive(true);
+                postPhase = 2;
+            }
             sound.PlayOneShot(endBlips);
-            ScoreText.gameObject.SetActive(true);
-            postPhase = 2;
             countdown = 0.5f;
         }
         else if (postPhase == 2)
@@ -700,7 +797,7 @@ public class GameManager : MonoBehaviour {
         else if (lossSet && countdown <= 0)
         {
             sound.PlayOneShot(endBlips);
-            EndShade.SetActive(true);
+            LoseShade.SetActive(true);
             LoseText.SetActive(true);
             postPhase = 1;
             countdown = 1.5f;
@@ -787,7 +884,7 @@ public class GameManager : MonoBehaviour {
         if(moneyInd!= null)
         {
             moneyInd.gameObject.SetActive(true);
-            moneyInd.text = "-" + i.ToString();
+            moneyInd.text = (i > 0)? "-" : "" + i.ToString();
             moneyInd.rectTransform.position = pos;
         }
 

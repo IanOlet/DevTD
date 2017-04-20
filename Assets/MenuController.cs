@@ -24,11 +24,10 @@ public class MenuController : MonoBehaviour {
 	
 	// Update is called once per frame
 	void Update () {
-		if(Input.GetKeyDown(KeyCode.KeypadEnter) || Input.GetKeyDown(KeyCode.Return)) //Loads the game when the key is pressed
+		if(Input.GetKeyDown(KeyCode.Space) ||Input.GetKeyDown(KeyCode.KeypadEnter) || Input.GetKeyDown(KeyCode.Return)) //Loads the game when the key is pressed
         {
             SceneManager.LoadScene("Level");
         }
-
         if (!learning)
         {
             Vector3 mousePos = Camera.main.ScreenToWorldPoint(Input.mousePosition);
